@@ -18,23 +18,52 @@ Este repositório contém um script e um serviço `systemd` para assinar automat
 Abra o terminal e execute:
 
 ```bash
-cd ~
-openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv \
-  -outform DER -out MOK.der -nodes -days 36500 \
-  -subj "/CN=VirtualBox/"
-```
+sudo openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv \
+-outform DER -out MOK.der -nodes -days 36500 \
+-subj "/CN=VirtualBox/"
 
-### 2. Registre a chave no Secure Boot (MOK)
+```
+🔐 Este comando gera as chaves para assinatura dos módulos:
+
+- MOK.priv: chave privada
+
+- MOK.der: certificado (em formato DER, usado pelo MOK Manager)
+
+### 2. Registrar/Importar a chave para o Secure Boot (MOK)
 
 ```bash
-sudo mokutil --import ~/MOK.der
+sudo mokutil --import /var/lib/shim-signed/mok/MOK.der
 ```
+Digite a senha para ser usada no próximo boot.
+
+Esse comando agenda o registro da chave no Secure Boot, que será concluído na próxima reinicialização, quando você verá a tela azul do MOK Manager para confirmar a importação.
 
 Você criará uma senha temporária. Na próxima reinicialização, use essa senha para concluir o registro da chave na tela azul do MOK Manager.
 
 ---
 
-### 3. Crie o script de assinatura automática
+
+### 3. Reinicie o sistema e faça o “Enroll MOK” na tela azul durante o boot:
+
+Escolha “Enroll MOK” → “Continue” → digite a senha → “Yes” → “Reboot”.
+
+### 4. Assine os módulos novamente (agora com a MOK válida):
+
+```sh
+KDIR=/usr/src/linux-headers-$(uname -r)
+PRIV=/var/lib/shim-signed/mok/MOK.priv
+CERT=/var/lib/shim-signed/mok/MOK.der
+
+for mod in vboxdrv vboxnetflt vboxnetadp; do
+  FILE=$(modinfo -n $mod 2>/dev/null)
+  if [ -f "$FILE" ]; then
+    sudo $KDIR/scripts/sign-file sha256 $PRIV $CERT $FILE
+  fi
+done
+```
+
+
+### 5. Crie o script de assinatura automática
 
 ```bash
 sudo nano /usr/local/bin/assinador_virtualbox.sh
@@ -70,7 +99,7 @@ Depois, torne-o executável:
 sudo chmod +x /usr/local/bin/assinador_virtualbox.sh
 ```
 
-### 4. Crie o serviço systemd
+### 6. Crie o serviço systemd
 
 ```bash
 sudo nano /etc/systemd/system/assinador-virtualbox.service
@@ -99,7 +128,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable assinador-virtualbox.service
 ```
 
-### 5. Mova as chaves para `/root`
+### 7. Mova as chaves para `/root`
 
 ```bash
 sudo mv ~/MOK.* /root/
