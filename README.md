@@ -109,8 +109,9 @@ Cole o conteúdo abaixo:
 
 ```ini
 [Unit]
-Description=Assinatura automática dos módulos do VirtualBox
-After=network.target
+Description=Assina os módulos do VirtualBox após boot (Secure Boot)
+After=multi-user.target
+ConditionPathExists=/usr/local/bin/assinador_virtualbox.sh
 
 [Service]
 Type=oneshot
@@ -118,6 +119,7 @@ ExecStart=/usr/local/bin/assinador_virtualbox.sh
 
 [Install]
 WantedBy=multi-user.target
+
 ```
 
 Ative o serviço:
@@ -128,13 +130,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable assinador-virtualbox.service
 ```
 
-### 7. Mova as chaves para `/root`
-
-```bash
-sudo mv ~/MOK.* /root/
-sudo chown root:root /root/MOK.*
-chmod 600 /root/MOK.priv
-```
 
 ---
 
@@ -144,17 +139,11 @@ chmod 600 /root/MOK.priv
 systemctl status assinador-virtualbox.service
 ```
 
-Você pode ver os logs com:
-
-```bash
-journalctl -u assinador-virtualbox.service
-```
-
 ---
 
 ## 🔁 Agora é só reiniciar
 
-Sempre que você reiniciar, os módulos do VirtualBox serão assinados automaticamente (caso necessário) e você receberá uma notificação.
+Sempre que você reiniciar, os módulos do VirtualBox serão assinados automaticamente (caso necessário).
 
 ---
 
