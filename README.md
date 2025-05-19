@@ -7,7 +7,7 @@ Este repositório contém um script e um serviço `systemd` para assinar automat
 - Debian ou derivado (Ubuntu, Zorin, Mint etc.)
 - VirtualBox instalado (use o `.deb` oficial do site)
 - Secure Boot ativado no UEFI/BIOS
-- `mokutil`, `openssl`, `kmod`, `systemd`, `notify-send` instalados
+- `mokutil`, `openssl`, `kmod`, `systemd`, instalados
 
 ---
 
