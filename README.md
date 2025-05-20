@@ -18,9 +18,13 @@ Este repositório contém um script e um serviço `systemd` para assinar automat
 Abra o terminal e execute:
 
 ```bash
-sudo openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv \
--outform DER -out MOK.der -nodes -days 36500 \
--subj "/CN=VirtualBox/"
+sudo mkdir -p /var/lib/shim-signed/mok
+cd /var/lib/shim-signed/mok
+
+sudo openssl req -new -x509 -newkey rsa:2048 \
+  -keyout MOK.priv -outform DER -out MOK.der \
+  -nodes -days 36500 \
+  -subj "/CN=VirtualBox Secure Boot/"
 
 ```
 🔐 Este comando gera as chaves para assinatura dos módulos:
